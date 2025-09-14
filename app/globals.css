@@ -3,18 +3,50 @@
 @tailwind utilities;
 
 :root {
-  --bg: #071724;
+  --bg: #fafafa;
 }
+
 body {
-  @apply min-h-screen bg-gradient-to-br from-purple-500 via-pink-600 to-blue-500 text-white;
-  font-family: 'Inter', sans-serif;
+  @apply min-h-screen text-offwhite antialiased;
+  font-family: "Inter", sans-serif;
+  background: linear-gradient(
+    270deg,
+    #ff9a9e,
+    #fad0c4,
+    #fbc2eb,
+    #a1c4fd,
+    #c2e9fb,
+    #d4fc79,
+    #96e6a1
+  );
+  background-size: 1200% 1200%;
+  animation: backgroundMove 25s ease infinite;
 }
+
+@keyframes backgroundMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .btn {
-  @apply px-3 py-2 rounded-md border border-white/20 hover:bg-white/10 transition;
+  @apply px-4 py-2 rounded-md font-medium transition
+         bg-mint text-gray-900 hover:bg-sky;
 }
+
 .input {
-  @apply w-full rounded-md bg-black/20 border border-white/20 px-3 py-2 outline-none focus:ring-2 focus:ring-boardGold;
+  @apply w-full rounded-md border border-gray-300 
+         px-3 py-2 bg-white text-gray-800 
+         placeholder-gray-400 shadow-sm 
+         focus:outline-none focus:ring-2 focus:ring-bubblegum;
 }
+
 .card {
-  @apply rounded-lg border border-white/10 bg-white/5;
+  @apply rounded-lg border border-gray-200 bg-white shadow-sm;
 }

@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUturnLeftIcon } from "@heroicons/react/24/solid";
 
 interface CurrentQ {
   category: string;
@@ -9,58 +8,78 @@ interface CurrentQ {
   question: string;
   answer?: string;
 }
+interface Player {
+  id: string;
+  name: string;
+  score: number;
+  emoji: string;
+}
 
 export default function QuestionPage() {
   const [data, setData] = useState<CurrentQ | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [players, setPlayers] = useState<Player[]>([]);
   const router = useRouter();
 
   useEffect(() => {
-    const raw = localStorage.getItem("currentQuestion");
-    if (raw) {
-      setData(JSON.parse(raw));
+    const rawQ = localStorage.getItem("currentQuestion");
+    if (rawQ) {
+      setData(JSON.parse(rawQ));
     } else {
       router.replace("/quiz");
     }
+
+    const rawPlayers = localStorage.getItem("players");
+    if (rawPlayers) setPlayers(JSON.parse(rawPlayers));
   }, [router]);
 
   const markQuestionUsed = () => {
     if (!data) return;
+    const used = JSON.parse(localStorage.getItem("usedQuestions") || "[]");
 
-    if (showAnswer) {
-      const used = JSON.parse(localStorage.getItem("usedQuestions") || "[]");
+    const alreadyUsed = used.some(
+      (u: any) => u.category === data.category && u.points === data.points
+    );
 
-      const alreadyUsed = used.some(
-        (u: any) => u.category === data.category && u.points === data.points
+    if (!alreadyUsed) {
+      used.push({ category: data.category, points: data.points });
+      localStorage.setItem("usedQuestions", JSON.stringify(used));
+    }
+  };
+
+  const awardPoints = (playerId: string | null) => {
+    if (!data) return;
+
+    if (playerId) {
+      const updated = players.map((p) =>
+        p.id === playerId ? { ...p, score: p.score + data.points } : p
       );
-
-      if (!alreadyUsed) {
-        // ✅ Save without playerName, just mark as used
-        used.push({ category: data.category, points: data.points });
-        localStorage.setItem("usedQuestions", JSON.stringify(used));
-      }
+      setPlayers(updated);
+      localStorage.setItem("players", JSON.stringify(updated));
     }
 
+    // mark question as used and go back
+    markQuestionUsed();
     router.push("/quiz");
   };
 
   if (!data) return null;
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen px-6 bg-gradient-to-br from-purple-800 via-pink-600 to-blue-700 text-white">
-      <div className="w-full max-w-3xl rounded-3xl border border-white/50 bg-white/30 backdrop-blur-xl p-12 text-center shadow-2xl">
+    <main className="flex flex-col items-center justify-center min-h-screen px-6 ">
+      <div className="w-full max-w-3xl rounded-2xl border border-lavender bg-white shadow-md p-10 text-center">
         {/* Category */}
-        <h2 className="text-2xl font-bold uppercase tracking-wide mb-6 text-gray-900">
+        <h2 className="text-xl font-semibold uppercase tracking-wide mb-4 text-gray-700">
           {data.category}
         </h2>
 
         {/* Points */}
-        <div className="inline-block px-6 py-2 border rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-extrabold text-xl  mb-8">
+        <div className="inline-block px-6 py-2 rounded-full bg-bubblegum/30 text-bubblegum font-bold text-lg mb-8 border border-bubblegum/50">
           ${data.points}
         </div>
 
         {/* Question */}
-        <p className="text-lg leading-relaxed max-w-2xl mx-auto text-gray-900">
+        <p className="text-lg leading-relaxed max-w-2xl mx-auto text-gray-800">
           {data.question}
         </p>
 
@@ -68,23 +87,47 @@ export default function QuestionPage() {
         {!showAnswer ? (
           <button
             onClick={() => setShowAnswer(true)}
-            className="mt-12 px-6 py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-semibold shadow-lg transition"
+            className="mt-12 px-6 py-3 rounded-xl border border-sky/90 text-sky font-medium hover:bg-sky/20 transition"
           >
-            Click here for the answer
+            Show Answer
           </button>
         ) : (
-          <div className="mt-12 text-2xl font-bold ">{data.answer} </div>
+          <>
+            <div className="mt-12 text-2xl font-bold text-bubblegum">
+              {data.answer}
+            </div>
+
+            {/* Award Points */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                Who answered correctly?
+              </h3>
+              <div className="flex flex-wrap justify-center gap-2">
+                {players.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => awardPoints(p.id)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full border bg-offwhite text-gray-900 shadow-sm 
+                               hover:shadow-md transition transform hover:scale-105 text-sm font-semibold"
+                  >
+                    <span className="text-lg">{p.emoji}</span>
+                    <span>{p.name}</span>
+                  </button>
+                ))}
+
+                {/* Default "no one" option */}
+                <button
+                  onClick={() => awardPoints(null)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border  text-gray-900 shadow-sm 
+                             hover:bg-gray-200 transition text-sm font-medium"
+                >
+                  🙅 Nobody
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </div>
-
-      {/* Back to Board */}
-      <button
-        onClick={markQuestionUsed}
-        className="mt-8 flex items-center gap-2 text-white/80 hover:text-white text-sm"
-      >
-        <ArrowUturnLeftIcon className="h-5 w-5" />
-        Back to Board
-      </button>
     </main>
   );
 }

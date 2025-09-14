@@ -20,7 +20,6 @@ export default function Cell({
   const [used, setUsed] = useState(false);
   const [usedBy, setUsedBy] = useState<string | null>(null);
 
-  // load used status + owner
   useEffect(() => {
     const list = JSON.parse(localStorage.getItem("usedQuestions") || "[]");
     const match = list.find(
@@ -43,7 +42,7 @@ export default function Cell({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!used) return; // only assign after question is used
+    if (!used) return;
 
     const toId = e.dataTransfer.getData("playerId");
     const toName = e.dataTransfer.getData("playerName");
@@ -55,13 +54,10 @@ export default function Cell({
     );
     const fromId: string | null = match?.playerId ?? null;
 
-    // same player -> ignore
     if (fromId === toId) return;
 
-    // atomic transfer: -points from previous (if any), +points to new
     onTransferPoints(fromId, toId, qa.points);
 
-    // update owner in storage
     const updated = list.map((u: any) =>
       u.category === category && u.points === qa.points
         ? { ...u, playerId: toId, playerName: toName }
@@ -77,19 +73,19 @@ export default function Cell({
       onDragOver={(e) => used && e.preventDefault()}
       onDrop={handleDrop}
       disabled={used}
-      className={`flex flex-col items-center justify-center h-20 w-full rounded-md shadow 
-                  transition font-extrabold tracking-wide text-center p-1
-                  ${
-                    used
-                      ? "bg-gray-800 text-gray-400"
-                      : "bg-gradient-to-br from-indigo-600 to-pink-500 hover:from-indigo-500 hover:to-pink-400 text-yellow-300 text-2xl"
-                  }`}
+      className={`flex flex-col items-center justify-center h-20 w-full rounded-xl border shadow-sm 
+                transition text-lg font-semibold
+      ${
+        used
+          ? "bg-gray-100 border-gray-300 text-gray-400 line-through"
+          : "bg-white border-gray-200  hover:border-bubblegum text-gray-800 hover:border-2"
+      }`}
     >
       {used ? (
         <>
-          <span className="line-through opacity-60">${qa.points}</span>
+          <span>${qa.points}</span>
           {usedBy && (
-            <span className="text-xs text-white mt-1">({usedBy})</span>
+            <span className="text-xs text-bubblegum mt-1">({usedBy})</span>
           )}
         </>
       ) : (

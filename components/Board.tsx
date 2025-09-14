@@ -15,10 +15,10 @@ export default function Board({
 }) {
   return (
     <div className="mt-6">
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
         {data.categories.map((cat, idx) => (
           <CategoryColumn
-            key={idx}
+            idx={idx}
             cat={cat}
             onTransferPoints={onTransferPoints}
           />
@@ -30,25 +30,34 @@ export default function Board({
 
 function CategoryColumn({
   cat,
+  idx,
   onTransferPoints,
 }: {
   cat: Category;
+  idx: number;
   onTransferPoints: (
     fromId: string | null,
     toId: string,
     points: number
   ) => void;
 }) {
+  const colors = [
+    "bg-purple-100 border-purple-300 text-purple-800",
+    "bg-blue-100 border-blue-300 text-blue-800",
+    "bg-emerald-100 border-emerald-300 text-emerald-800",
+    "bg-pink-100 border-pink-300 text-pink-800",
+    "bg-amber-100 border-amber-300 text-amber-800",
+  ];
+
+  const colorClass = colors[idx % colors.length];
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div
-        className="h-28 flex items-center justify-center text-center 
-                      bg-gradient-to-br from-indigo-600 to-indigo-800 
-                      border border-white/20 shadow rounded-md px-2"
+        className={`h-24 flex items-center justify-center text-center 
+                    ${colorClass} rounded-xl shadow px-2 font-semibold uppercase tracking-wide`}
       >
-        <div className="font-extrabold text-yellow-300 uppercase tracking-wide text-lg text-center">
-          {cat.title}
-        </div>
+        {cat.title}
       </div>
 
       {cat.questions.map((qa, i) => (
