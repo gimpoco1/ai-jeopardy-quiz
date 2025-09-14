@@ -78,11 +78,11 @@ export default function Cell({
     >
       {used ? (
         <>
-          <span>${qa.points}</span>
+          <span>€{qa.points}</span>
           {usedBy && <UsedBy>({usedBy})</UsedBy>}
         </>
       ) : (
-        <span>${qa.points}</span>
+        <span>€{qa.points}</span>
       )}
     </CellButton>
   );

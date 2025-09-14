@@ -27,7 +27,10 @@ JSON schema:
     },
     ...
   ]
-}`;
+}
+  
+Schema must be followed exactly.
+`;
 
 export const userPrompt = (topic: string) =>
   `Generate a quiz board based on the theme: "${topic}". 

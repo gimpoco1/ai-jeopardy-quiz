@@ -20,7 +20,7 @@ export default function PlayerButton({
     <Wrapper clickable={!!onClick} onClick={onClick}>
       <span className="emoji">{player.emoji}</span>
       <span className="name">{player.name}</span>
-      {showScore && <span className="score">${player.score}</span>}
+      {showScore && <span className="score">€{player.score}</span>}
 
       {onRemove && (
         <DeleteButton

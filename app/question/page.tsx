@@ -92,7 +92,7 @@ export default function QuestionPage() {
   return (
     <Container>
       <Category>{data.category}</Category>
-      <Points>${data.points}</Points>
+      <Points>€ {data.points}</Points>
 
       <Card>
         <Question>{data.question}</Question>
