@@ -2,7 +2,6 @@
 
 Generate a Jeopardy-style 5×6 board of questions from any topic using OpenAI's GPT-4 model.
 
-https://www.youtube.com/watch?v=twQKO6x41lk
 
 ## Quickstart
 
@@ -25,11 +24,9 @@ Open http://localhost:3000
 - `app/api/generate/route.ts` — calls OpenAI (or mock) to produce the board
 - `lib/prompt.ts` — tightly scoped prompt
 - `lib/types.ts` — TypeScript types
-- `tailwind` — used for styling, with colors matching the reference screenshot
 
 ## Roadmap
 - Answers & judging rubric in the payload
-- Players and scoring (tap a player after reveal to assign points)
 - Host controls: lock/unlock, reveal timer
 - Persist boards, export/import as JSON
 - Audio/visual polish
