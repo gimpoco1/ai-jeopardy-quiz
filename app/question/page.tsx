@@ -11,6 +11,11 @@ interface CurrentQuestion {
   answer?: string;
 }
 
+function capitalizeFirstLetter(str: string) {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export default function QuestionPage() {
   const [data, setData] = useState<CurrentQuestion | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -98,7 +103,7 @@ export default function QuestionPage() {
           </RevealButton>
         ) : (
           <>
-            <Answer>{answer}</Answer>
+            <Answer>{capitalizeFirstLetter(answer)}</Answer>
             <Explanation>{explanation}</Explanation>
           </>
         )}
