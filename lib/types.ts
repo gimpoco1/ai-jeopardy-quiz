@@ -7,10 +7,17 @@ export interface QA {
 
 export interface Category {
   title: string;
-  questions: QA[]; // must include exactly one for each point value
+  questions: QA[];
 }
 
 export interface BoardData {
   topic: string;
-  categories: Category[]; // 5 categories
+  categories: Category[];
+}
+
+export interface Player {
+  id: string;
+  name: string;
+  score: number;
+  emoji: string;
 }

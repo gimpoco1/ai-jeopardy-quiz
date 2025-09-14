@@ -1,6 +1,7 @@
 "use client";
 import { BoardData, Category } from "../lib/types";
 import Cell from "./Cell";
+import styled from "@emotion/styled";
 
 export default function Board({
   data,
@@ -14,17 +15,18 @@ export default function Board({
   ) => void;
 }) {
   return (
-    <div className="mt-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    <BoardWrapper>
+      <Grid>
         {data.categories.map((cat, idx) => (
           <CategoryColumn
+            key={idx}
             idx={idx}
             cat={cat}
             onTransferPoints={onTransferPoints}
           />
         ))}
-      </div>
-    </div>
+      </Grid>
+    </BoardWrapper>
   );
 }
 
@@ -42,23 +44,26 @@ function CategoryColumn({
   ) => void;
 }) {
   const colors = [
-    "bg-purple-100 border-purple-300 text-purple-800",
-    "bg-blue-100 border-blue-300 text-blue-800",
-    "bg-emerald-100 border-emerald-300 text-emerald-800",
-    "bg-pink-100 border-pink-300 text-pink-800",
-    "bg-amber-100 border-amber-300 text-amber-800",
+    { bg: "#EDE9FE", border: "#C4B5FD", text: "#5B21B6" }, // purple
+    { bg: "#DBEAFE", border: "#93C5FD", text: "#1E3A8A" }, // blue
+    { bg: "#D1FAE5", border: "#6EE7B7", text: "#065F46" }, // emerald
+    { bg: "#FCE7F3", border: "#F9A8D4", text: "#9D174D" }, // pink
+    { bg: "#FEF3C7", border: "#FCD34D", text: "#92400E" }, // amber
   ];
 
-  const colorClass = colors[idx % colors.length];
+  const color = colors[idx % colors.length];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div
-        className={`h-24 flex items-center justify-center text-center 
-                    ${colorClass} rounded-xl shadow px-2 font-semibold uppercase tracking-wide`}
+    <Column>
+      <CategoryHeader
+        style={{
+          background: color.bg,
+          borderColor: color.border,
+          color: color.text,
+        }}
       >
         {cat.title}
-      </div>
+      </CategoryHeader>
 
       {cat.questions.map((qa, i) => (
         <Cell
@@ -68,6 +73,38 @@ function CategoryColumn({
           onTransferPoints={onTransferPoints}
         />
       ))}
-    </div>
+    </Column>
   );
 }
+
+
+const BoardWrapper = styled.div`
+  margin-top: 1.5rem;
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+`;
+
+const Column = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const CategoryHeader = styled.div`
+  height: 6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 0.5rem;
+  border: 1px solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+`;

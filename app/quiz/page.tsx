@@ -1,20 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BoardData } from "../../lib/types";
+import styled from "@emotion/styled";
+import { BoardData, Player } from "../../lib/types";
 import Board from "../../components/Board";
-import { ArrowPathIcon, PlusIcon } from "@heroicons/react/24/solid";
-import { v4 as uuid } from "uuid";
-
-type Player = { id: string; name: string; score: number; emoji: string };
+import PlayerButton from "../../components/PlayerButton";
+import { ArrowPathIcon } from "@heroicons/react/24/solid";
 
 export default function QuizPage() {
   const [data, setData] = useState<BoardData | null>(null);
-
-  const [newPlayer, setNewPlayer] = useState("");
-  const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const rawPlayers = localStorage.getItem("players");
@@ -28,7 +25,6 @@ export default function QuizPage() {
     }
   }, [players, loaded]);
 
-  // Load quiz board + players
   useEffect(() => {
     const rawBoard = localStorage.getItem("quizBoard");
     if (rawBoard) setData(JSON.parse(rawBoard));
@@ -45,8 +41,9 @@ export default function QuizPage() {
   ) => {
     setPlayers((prev) =>
       prev.map((p) => {
-        if (fromId && p.id === fromId) return { ...p, score: p.score - points };
-        if (p.id === toId) return { ...p, score: p.score + points };
+        if (fromId && p.id === fromId)
+          return { ...p, score: p.score! - points };
+        if (p.id === toId) return { ...p, score: p.score! + points };
         return p;
       })
     );
@@ -55,7 +52,6 @@ export default function QuizPage() {
   const resetGame = () => {
     ["quizBoard", "usedQuestions"].forEach((k) => localStorage.removeItem(k));
 
-    // reset players’ scores but keep their names/ids
     const resetPlayers = players.map((p) => ({ ...p, score: 0 }));
     setPlayers(resetPlayers);
     localStorage.setItem("players", JSON.stringify(resetPlayers));
@@ -66,44 +62,77 @@ export default function QuizPage() {
   if (!data) return null;
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-14 min-h-screen">
-      {/* Header */}
-      <header className="text-center mb-10">
-        <h1 className="text-4xl font-extrabold text-gray-800">Quiz Time</h1>
-      </header>
+    <Container>
+      <Header>
+        <h1>Quiz Time</h1>
+      </Header>
 
-      {/* Board */}
       <Board data={data} onTransferPoints={transferPoints} />
 
-      {/* Players */}
-      <section className="mt-12">
-        <h2 className="text-2xl font-bold text-gray-700 mb-4">Players</h2>
-
-        <div className="flex flex-wrap gap-3">
+      <PlayersSection>
+        <h2>Players</h2>
+        <PlayerList>
           {players.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border bg-offwhite text-gray-900 shadow-sm 
-                         hover:shadow-md transition transform hover:scale-105 text-sm font-semibold"
-            >
-              <span className="text-lg">{p.emoji}</span>
-              <span>{p.name}</span>
-              <span className="ml-2 text-bubblegum font-bold">${p.score}</span>
-            </div>
+            <PlayerButton key={p.id} player={p} showScore />
           ))}
-        </div>
-      </section>
+        </PlayerList>
+      </PlayersSection>
 
-      {/* Reset */}
-      <div className="text-center mt-12">
-        <button
-          onClick={resetGame}
-          className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm"
-        >
+      <ResetWrapper>
+        <button onClick={resetGame}>
           <ArrowPathIcon className="h-5 w-5" />
           Start Over
         </button>
-      </div>
-    </main>
+      </ResetWrapper>
+    </Container>
   );
 }
+
+const Container = styled.main`
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem;
+  min-height: 100vh;
+`;
+
+const Header = styled.header`
+  text-align: center;
+  margin-bottom: 2.5rem;
+  h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #1f2937;
+  }
+`;
+
+const PlayersSection = styled.section`
+  margin-top: 3rem;
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 1rem;
+  }
+`;
+
+const PlayerList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+`;
+
+const ResetWrapper = styled.div`
+  margin-top: 3rem;
+  text-align: center;
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    transition: color 0.2s;
+    &:hover {
+      color: #374151;
+    }
+  }
+`;

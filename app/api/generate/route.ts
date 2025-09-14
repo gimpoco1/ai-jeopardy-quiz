@@ -22,7 +22,6 @@ const BoardSchema = z.object({
                 z.literal(600),
               ]),
               question: z.string().min(5).max(220),
-              answer: z.string().min(1).max(220), // 👈 added
             })
           )
           .length(6),

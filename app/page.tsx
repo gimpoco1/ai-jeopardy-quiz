@@ -9,6 +9,8 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/solid";
 import { v4 as uuid } from "uuid";
+import styled from "@emotion/styled";
+import PlayerButton from "../components/PlayerButton";
 
 type Player = { id: string; name: string; score: number; emoji: string };
 
@@ -22,7 +24,6 @@ export default function Home() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  // Some playful emojis to assign to players
   const emojis = ["🎲", "🚀", "🦄", "🐉", "⚡", "🎯", "🔥", "🌟"];
 
   useEffect(() => {
@@ -75,74 +76,51 @@ export default function Home() {
     }
   };
 
+  const removePlayer = (playerId: string) => {
+    setPlayers((prev) => prev.filter((p) => p.id !== playerId));
+    localStorage.setItem("players", JSON.stringify(players));
+  };
+
   return (
-    <main className="min-h-screen flex flex-col items-center px-6 py-20">
-      {/* Header */}
-      <header className="text-center mb-12">
-        <h1 className="text-5xl font-extrabold text-gray-800">AI Quiz Board</h1>
-        <p className="mt-2 text-lg text-gray-600">
-          Add players, choose a topic, and start your quiz
-        </p>
-      </header>
+    <Container>
+      <Header>
+        <h1>AI Quiz Board</h1>
+        <p>Add players, choose a topic, and start your quiz</p>
+      </Header>
 
       {/* Players Section */}
-      <section className="w-full max-w-lg bg-white rounded-2xl shadow-md p-6 mb-10 ">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Players</h2>
+      <Section>
+        <h2>Players</h2>
 
-        {/* Add Player Input */}
-        <input
-          className="input w-full mb-6"
+        <PlayerInput
           placeholder="Type a name and press Enter"
           value={newPlayer}
           onChange={(e) => setNewPlayer(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addPlayer()}
         />
 
-        {/* Player List */}
-        <div className="flex flex-wrap gap-3">
+        <PlayerList>
           {players.map((p) => (
-            <div
-              key={p.id}
-              className="group flex items-center gap-2 px-4 py-2 rounded-full border bg-sky-100 text-gray-900 shadow-sm 
-                 hover:shadow-md transition transform hover:scale-105 text-sm font-semibold"
-            >
-              <span className="text-lg">{p.emoji}</span>
-              <span className="flex-1">{p.name}</span>
-
-              {/* Delete button (only on hover) */}
-              <button
-                onClick={() =>
-                  setPlayers((prev) => prev.filter((pl) => pl.id !== p.id))
-                }
-                className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition"
-              >
-                <TrashIcon className="h-4 w-4" />
-              </button>
-            </div>
+            <PlayerWrapper key={p.id}>
+              <PlayerButton player={p} onRemove={() => removePlayer(p.id)} />
+            </PlayerWrapper>
           ))}
-          {players.length === 0 && (
-            <p className="text-sm text-gray-400 italic">No players added yet</p>
-          )}
-        </div>
-      </section>
+          {players.length === 0 && <EmptyText>No players added yet</EmptyText>}
+        </PlayerList>
+      </Section>
 
       {/* Quiz Setup Section */}
-      <section className="w-full max-w-lg bg-white rounded-2xl shadow-md p-6 flex flex-col items-center">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Quiz Setup</h2>
+      <Section>
+        <h2>Quiz Setup</h2>
 
-        <input
-          className="input w-full mb-6"
+        <TopicInput
           placeholder="Enter topic (e.g., space, cars, history...)"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
         />
 
-        <button
-          className="w-full py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-pink-500 to-pink-300 shadow-lg hover:scale-105 transition flex items-center justify-center gap-2"
-          onClick={handleGenerate}
-          disabled={loading}
-        >
+        <StartButton onClick={handleGenerate} disabled={loading}>
           {loading ? (
             <>
               <SparklesIcon className="h-6 w-6 animate-spin" />
@@ -154,15 +132,135 @@ export default function Home() {
               Start Playing
             </>
           )}
-        </button>
+        </StartButton>
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 text-bubblegum font-medium bg-bubblegum/10 border border-bubblegum rounded-md p-2">
+          <ErrorBox>
             <ExclamationTriangleIcon className="h-5 w-5" />
             {error}
-          </div>
+          </ErrorBox>
         )}
-      </section>
-    </main>
+      </Section>
+    </Container>
   );
 }
+
+/* ---------------- Emotion styled ---------------- */
+const Container = styled.main`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5rem 1.5rem;
+`;
+
+const Header = styled.header`
+  text-align: center;
+  margin-bottom: 3rem;
+  h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #1f2937;
+  }
+  p {
+    margin-top: 0.5rem;
+    font-size: 1.125rem;
+    color: #4b5563;
+  }
+`;
+
+const Section = styled.section`
+  width: 100%;
+  max-width: 32rem;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2.5rem;
+  text-align: center;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+  }
+`;
+
+const PlayerInput = styled.input`
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1.5rem;
+  color: #1f2937;
+  font-size: 1rem;
+  &:focus {
+    outline: none;
+    border-color: #ec4899;
+    box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.3);
+  }
+`;
+
+const PlayerList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+`;
+
+const PlayerWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const DeleteButton = styled.button`
+  opacity: 0.7;
+  color: #ef4444;
+  transition: opacity 0.2s, transform 0.2s;
+  &:hover {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+`;
+
+const EmptyText = styled.p`
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-style: italic;
+`;
+
+const TopicInput = styled(PlayerInput)``;
+
+const StartButton = styled.button`
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #fff;
+  background: linear-gradient(to right, #ec4899, #f9a8d4);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: transform 0.2s;
+  &:hover {
+    transform: scale(1.05);
+  }
+`;
+
+const ErrorBox = styled.div`
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ec4899;
+  background: rgba(236, 72, 153, 0.1);
+  border: 1px solid #ec4899;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  font-weight: 500;
+`;

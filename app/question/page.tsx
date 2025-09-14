@@ -1,25 +1,42 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import styled from "@emotion/styled";
+import { Player } from "../../lib/types";
 
-interface CurrentQ {
+interface CurrentQuestion {
   category: string;
   points: number;
   question: string;
   answer?: string;
 }
-interface Player {
-  id: string;
-  name: string;
-  score: number;
-  emoji: string;
-}
 
 export default function QuestionPage() {
-  const [data, setData] = useState<CurrentQ | null>(null);
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [data, setData] = useState<CurrentQuestion | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showAwardSection, setShowAwardSection] = useState(false);
   const router = useRouter();
+
+  const revealAnswer = async () => {
+    if (!data) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: data.question, topic: data.category }),
+      });
+      const json = await res.json();
+      setAnswer(json.answer);
+      setExplanation(json.explanation);
+      setTimeout(() => setShowAwardSection(true), 2500);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const rawQ = localStorage.getItem("currentQuestion");
@@ -42,14 +59,18 @@ export default function QuestionPage() {
     );
 
     if (!alreadyUsed) {
-      used.push({ category: data.category, points: data.points });
+      used.push({
+        category: data.category,
+        points: data.points,
+        playerId: null,
+        playerName: null,
+      });
       localStorage.setItem("usedQuestions", JSON.stringify(used));
     }
   };
 
   const awardPoints = (playerId: string | null) => {
     if (!data) return;
-
     if (playerId) {
       const updated = players.map((p) =>
         p.id === playerId ? { ...p, score: p.score + data.points } : p
@@ -57,8 +78,6 @@ export default function QuestionPage() {
       setPlayers(updated);
       localStorage.setItem("players", JSON.stringify(updated));
     }
-
-    // mark question as used and go back
     markQuestionUsed();
     router.push("/quiz");
   };
@@ -66,68 +85,156 @@ export default function QuestionPage() {
   if (!data) return null;
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen px-6 ">
-      <div className="w-full max-w-3xl rounded-2xl border border-lavender bg-white shadow-md p-10 text-center">
-        {/* Category */}
-        <h2 className="text-xl font-semibold uppercase tracking-wide mb-4 text-gray-700">
-          {data.category}
-        </h2>
+    <Container>
+      <Category>{data.category}</Category>
+      <Points>${data.points}</Points>
 
-        {/* Points */}
-        <div className="inline-block px-6 py-2 rounded-full bg-bubblegum/30 text-bubblegum font-bold text-lg mb-8 border border-bubblegum/50">
-          ${data.points}
-        </div>
+      <Card>
+        <Question>{data.question}</Question>
 
-        {/* Question */}
-        <p className="text-lg leading-relaxed max-w-2xl mx-auto text-gray-800">
-          {data.question}
-        </p>
-
-        {/* Reveal Answer */}
-        {!showAnswer ? (
-          <button
-            onClick={() => setShowAnswer(true)}
-            className="mt-12 px-6 py-3 rounded-xl border border-sky/90 text-sky font-medium hover:bg-sky/20 transition"
-          >
-            Show Answer
-          </button>
+        {!answer ? (
+          <RevealButton onClick={revealAnswer} disabled={loading}>
+            {loading ? "Loading..." : "Reveal Answer"}
+          </RevealButton>
         ) : (
           <>
-            <div className="mt-12 text-2xl font-bold text-bubblegum">
-              {data.answer}
-            </div>
-
-            {/* Award Points */}
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                Who answered correctly?
-              </h3>
-              <div className="flex flex-wrap justify-center gap-2">
-                {players.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => awardPoints(p.id)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full border bg-offwhite text-gray-900 shadow-sm 
-                               hover:shadow-md transition transform hover:scale-105 text-sm font-semibold"
-                  >
-                    <span className="text-lg">{p.emoji}</span>
-                    <span>{p.name}</span>
-                  </button>
-                ))}
-
-                {/* Default "no one" option */}
-                <button
-                  onClick={() => awardPoints(null)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full border  text-gray-900 shadow-sm 
-                             hover:bg-gray-200 transition text-sm font-medium"
-                >
-                  🙅 Nobody
-                </button>
-              </div>
-            </div>
+            <Answer>{answer}</Answer>
+            <Explanation>{explanation}</Explanation>
           </>
         )}
-      </div>
-    </main>
+      </Card>
+
+      {showAwardSection && (
+        <AwardSection>
+          <h3>Who answered correctly?</h3>
+          <PlayerList>
+            {players.map((p) => (
+              <PlayerButton key={p.id} onClick={() => awardPoints(p.id)}>
+                <span>{p.emoji}</span>
+                <span>{p.name}</span>
+              </PlayerButton>
+            ))}
+            <NobodyButton onClick={() => awardPoints(null)}>
+              🙅 Nobody
+            </NobodyButton>
+          </PlayerList>
+        </AwardSection>
+      )}
+    </Container>
   );
 }
+
+const Container = styled.main`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+`;
+
+const Category = styled.h2`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+`;
+
+const Points = styled.div`
+  background: rgba(255, 105, 180, 0.3);
+  color: #ff69b4;
+  font-weight: 700;
+  border: 1px solid rgba(255, 105, 180, 0.5);
+  border-radius: 9999px;
+  padding: 0.5rem 1.5rem;
+  margin-bottom: 2rem;
+`;
+
+const Card = styled.div`
+  max-width: 48rem;
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid #e0e7ff;
+  background: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 2.5rem;
+  text-align: center;
+`;
+
+const Question = styled.p`
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: #1f2937;
+`;
+
+const RevealButton = styled.button`
+  margin-top: 3rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #0284c7;
+  color: #0284c7;
+  font-weight: 500;
+  transition: background 0.2s ease;
+  &:hover {
+    background: rgba(2, 132, 199, 0.1);
+  }
+`;
+
+const Answer = styled.div`
+  margin-top: 3rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ff69b4;
+`;
+
+const Explanation = styled.p`
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  font-style: italic;
+`;
+
+const AwardSection = styled.div`
+  margin-top: 2rem;
+  text-align: center;
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #374151;
+  }
+`;
+
+const PlayerList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+`;
+
+const PlayerButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #111827;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const NobodyButton = styled(PlayerButton)`
+  background: transparent;
+  &:hover {
+    background: #e5e7eb;
+  }
+`;

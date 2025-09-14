@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { QA } from "../lib/types";
 import { useEffect, useState } from "react";
+import styled from "@emotion/styled";
 
 export default function Cell({
   qa,
@@ -68,29 +69,55 @@ export default function Cell({
   };
 
   return (
-    <button
+    <CellButton
       onClick={handleClick}
       onDragOver={(e) => used && e.preventDefault()}
       onDrop={handleDrop}
       disabled={used}
-      className={`flex flex-col items-center justify-center h-20 w-full rounded-xl border shadow-sm 
-                transition text-lg font-semibold
-      ${
-        used
-          ? "bg-gray-100 border-gray-300 text-gray-400 line-through"
-          : "bg-white border-gray-200  hover:border-bubblegum text-gray-800 hover:border-2"
-      }`}
+      used={used}
     >
       {used ? (
         <>
           <span>${qa.points}</span>
-          {usedBy && (
-            <span className="text-xs text-bubblegum mt-1">({usedBy})</span>
-          )}
+          {usedBy && <UsedBy>({usedBy})</UsedBy>}
         </>
       ) : (
         <span>${qa.points}</span>
       )}
-    </button>
+    </CellButton>
   );
 }
+
+
+const CellButton = styled.button<{ used: boolean }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 5rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 1.125rem;
+  transition: all 0.15s ease;
+  border: 1px solid ${({ used }) => (used ? "#d1d5db" : "#e5e7eb")};
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: ${({ used }) => (used ? "#ccced1" : "#fff")};
+  color: ${({ used }) => (used ? "#9ca3af" : "#1f2937")};
+  text-decoration: ${({ used }) => (used ? "line-through" : "none")};
+
+  &:hover {
+    ${({ used }) =>
+      !used &&
+      `
+      border: 2px solid #ec4899;
+      color: #1f2937;
+    `}
+  }
+`;
+
+const UsedBy = styled.span`
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  color: #ec4899;
+`;
