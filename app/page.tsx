@@ -84,7 +84,7 @@ export default function Home() {
   return (
     <Container>
       <Header>
-        <h1>AI Quiz Board</h1>
+        <h1>QuizBoard AI</h1>
         <p>Add players, choose a topic, and start your quiz</p>
       </Header>
 

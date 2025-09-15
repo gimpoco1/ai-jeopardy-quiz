@@ -2,8 +2,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AI Quiz Board",
-  description: "Generate Jeopardy-style quiz boards from a topic.",
+  title: "QuizBoard AI",
+  description: "Generate Jeopardy-style quiz boards from a topic using AI.",
 };
 
 export default function RootLayout({
